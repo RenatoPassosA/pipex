@@ -60,11 +60,9 @@ void	pipe_data(char **av, t_fd data, char **env)
 {
 	pid_t	pid;
 	int		pipe_fd[2];
-	int		status;
 	char	**cmd;
 
 	cmd = ft_split(av[data.start], ' ');
-	status = 0;
 	if (pipe(pipe_fd) == -1)
 		exit(1);
 	pid = fork();
@@ -79,7 +77,7 @@ void	pipe_data(char **av, t_fd data, char **env)
 	}
 	else
 	{
-		waitpid(pid, &status, 0);
+		waitpid(pid, NULL, 0);
 		free_big(cmd);
 		close(pipe_fd[1]);
 		dup2(pipe_fd[0], STDIN_FILENO);
