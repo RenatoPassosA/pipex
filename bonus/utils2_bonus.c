@@ -62,7 +62,7 @@ int	get_heredoc_fd(char *delimiter)
 	if (fd == -1)
 	{
 		perror("Error creating heredoc file");
-		exit(1);
+		error ();
 	}
 	write(1, ">> ", 3);
 	line = get_next_line(STDIN_FILENO);
@@ -79,39 +79,27 @@ int	get_heredoc_fd(char *delimiter)
 	return (fd);
 }
 
-void	check_args(int ac)
-{
-	if (ac < 5)
-	{
-		printf("Error.\n Argumentos\n");
-		exit(1);
-	}
-}
-
 void	init_data(t_fd *dados, int ac, char **av)
 {
 	dados->start = 2;
-	check_args(ac);
+	if (ac < 5)
+		error();
 	if (ft_strncmp("here_doc", av[1], 8) == 0)
 	{
 		dados->fdin = get_heredoc_fd(av[2]);
 		if (dados->fdin == -1)
-		{
-			perror("Error creating heredoc fileAAAAAAAAAAA");
-			exit(1);
-		}
+			error();
 		dados->start = 3;
 		close(dados->fdin);
 		dados->fdin = open("infile", O_RDONLY | O_CREAT);
 	}
 	else
 		dados->fdin = open(av[1], O_RDONLY);
-	dados->fdout = open(av[ac - 1], O_WRONLY | O_CREAT | O_TRUNC, 0777);
+	dados->fdout = open(av[ac - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (dados->fdout == -1 || dados->fdin == -1)
 	{
 		if (dados->fdout == -1)
 			close(dados->fdin);
-		perror("Error opening infile/outfile");
-		exit(1);
+		error();
 	}
 }

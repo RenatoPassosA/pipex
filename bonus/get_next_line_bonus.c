@@ -54,6 +54,7 @@ static int	check_empty(char **store, char *buffer, int r_return)
 static char	*read_line(int fd, char **store)
 {
 	char	*buffer;
+	char	*temp;
 	int		read_return;
 
 	buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE + 1);
@@ -61,14 +62,13 @@ static char	*read_line(int fd, char **store)
 		return (NULL);
 	read_return = read(fd, buffer, BUFFER_SIZE);
 	if (read_return == -1)
-	{
-		free(buffer);
-		return (NULL);
-	}
+		return (free(*store), free(buffer), NULL);
 	buffer[read_return] = '\0';
 	while (read_return > 0)
 	{
+		temp = *store;
 		*store = ft_strjoin(*store, buffer);
+		free(temp);
 		if (ft_strchr(*store, '\n'))
 			break ;
 		read_return = read(fd, buffer, BUFFER_SIZE);

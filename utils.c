@@ -35,7 +35,7 @@ static int	count_words(char *s, char c)
 	return (counter);
 }
 
-static void	free_big(char **big)
+void	free_big(char **big)
 {
 	int	index;
 

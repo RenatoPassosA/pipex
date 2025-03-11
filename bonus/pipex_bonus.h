@@ -37,5 +37,7 @@ int				ft_strnstr(char *haystack, char *needle, size_t len);
 char			*get_env_path(char **env, char *cmd);
 char			*ft_strdup(char *str);
 void			free_big(char **big);
+void			error(void);
+void			clear_data(char *av, char **cmd, char *path);
 
 #endif

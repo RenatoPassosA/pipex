@@ -12,75 +12,62 @@
 
 #include "pipex_bonus.h"
 
-static void	clear_data(char *av, char **cmd)
+static void	pipe_child(int *pipe_fd, char *path, char **cmds, char **env)
 {
-	if (ft_strncmp(av, "here_doc", ft_strlen(av)) == 0)
-		unlink("infile");
-	free_big(cmd);
-}
-
-static char	*apply_join(char *path, char *str)
-{
-	char	*temp;
-
-	temp = path;
-	path = ft_strjoin(path, str);
-	free(temp);
-	return (path);
-}
-
-char	*get_env_path(char **env, char *cmd)
-{
-	int		i;
-	char	**paths;
-	char	*correct_path;
-
-	correct_path = NULL;
-	i = 0;
-	while (ft_strncmp("PATH", env[i], 4) != 0)
-		i++;
-	paths = ft_split(env[i] + 5, ':');
-	i = -1;
-	while (paths[++i])
+	close(pipe_fd[0]);
+	dup2(pipe_fd[1], STDOUT_FILENO);
+	if (execve(path, cmds, env) == -1)
 	{
-		paths[i] = apply_join(paths[i], "/");
-		paths[i] = apply_join(paths[i], cmd);
-		if (access(paths[i], F_OK) == 0)
-		{
-			free(correct_path);
-			correct_path = ft_strdup(paths[i]);
-		}
-		free(paths[i]);
+		free_big(cmds);
+		free(path);
+		error();
 	}
-	free(paths);
-	return (correct_path);
 }
 
-void	pipe_data(char **av, t_fd data, char **env)
+static void	pipe_parent(pid_t pid, int *pipe_fd, char *path, char **cmds)
+{
+	free_big(cmds);
+	close(pipe_fd[1]);
+	dup2(pipe_fd[0], STDIN_FILENO);
+	free(path);
+}
+
+static void	pipe_data(char **av, t_fd data, char **env)
 {
 	pid_t	pid;
 	int		pipe_fd[2];
-	char	**cmd;
+	char	**cmds;
+	char	*path;
 
-	cmd = ft_split(av[data.start], ' ');
+	cmds = ft_split(av[data.start], ' ');
 	if (pipe(pipe_fd) == -1)
-		exit(1);
+		error ();
+	path = get_env_path(env, cmds[0]);
+	if (!path)
+	{	
+		free_big(cmds);
+		free (path);
+		exit(127);
+	}
 	pid = fork();
 	if (pid == -1)
-		exit(1);
+		error();
 	if (pid == 0)
-	{
-		close(pipe_fd[0]);
-		dup2(pipe_fd[1], STDOUT_FILENO);
-		execve(get_env_path(env, cmd[0]), cmd, env);
-		perror("Error.\nExecve.");
-	}
+		pipe_child(pipe_fd, path, cmds, env);
 	else
 	{
 		waitpid(pid, NULL, 0);
-		free_big(cmd);
-		close(pipe_fd[1]);
-		dup2(pipe_fd[0], STDIN_FILENO);
+		pipe_parent(pid, pipe_fd, path, cmds);
+	}
+}
+
+static void	do_execve(char *path, char **cmds, char **env)
+{
+	if (execve(path, cmds, env) == -1)
+	{
+		free_big(cmds);
+		free(path);
+		error();
 	}
 }
 
@@ -88,9 +75,10 @@ int	main(int ac, char **av, char **env)
 {
 	t_fd	data;
 	pid_t	pid;
-	char	**cmd;
+	char	**cmds;
+	char	*path;
 
-	cmd = NULL;
+	cmds = NULL;
 	init_data(&data, ac, av);
 	dup2(data.fdin, STDIN_FILENO);
 	close(data.fdin);
@@ -101,14 +89,12 @@ int	main(int ac, char **av, char **env)
 	}
 	dup2(data.fdout, STDOUT_FILENO);
 	close(data.fdout);
-	cmd = ft_split(av[data.start], ' ');
+	cmds = ft_split(av[data.start], ' ');
+	path = get_env_path(env, cmds[0]);
 	pid = fork();
 	if (pid == 0)
-	{
-		execve(get_env_path(env, cmd[0]), cmd, env);
-		perror("Error.\nExecve 2.");
-	}
+		do_execve(path, cmds, env);
 	waitpid(pid, NULL, 0);
-	clear_data(av[1], cmd);
+	clear_data(av[1], cmds, path);
 	return (0);
 }

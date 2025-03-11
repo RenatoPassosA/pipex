@@ -39,32 +39,8 @@ int	ft_strncmp(const char *s1, const char *s2, size_t n)
 	return ((unsigned char)(s1[i]) - (unsigned char)(s2[i]));
 }
 
-void	close_all(t_fd *fds)
+char	*get_access(char **paths, char *full_path)
 {
-	close(fds->fd1);
-	close(fds->fd2);
-	close(fds->fd_pipe[0]);
-	close(fds->fd_pipe[0]);
-}
-
-t_fd	*init_data(t_fd *fds, int ac)
-{
-	if (ac != 5)
-	{
-		printf("Error.\n Argumentos\n");
-		exit(1);
-	}
-	fds = (t_fd *)malloc(sizeof(t_fd));
-	if (!fds)
-		exit(1);
-	fds->fd1 = 0;
-	fds->fd2 = 0;
-	fds->fd_pipe[0] = 0;
-	fds->fd_pipe[1] = 0;
-	if (pipe(fds->fd_pipe) == -1)
-	{
-		free(fds);
-		exit(1);
-	}
-	return (fds);
+	free_big(paths);
+	return (full_path);
 }

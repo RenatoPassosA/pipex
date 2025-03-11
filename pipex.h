@@ -14,25 +14,18 @@
 # define PIPEX_H
 
 # include <fcntl.h>
-# include <stdio.h> //
+# include <stdio.h>
 # include <stdlib.h>
 # include <sys/wait.h>
 # include <unistd.h>
-
-typedef struct fd
-{
-	int		fd1;
-	int		fd2;
-	int		fd_pipe[2];
-	char	**cmds;
-}			t_fd;
 
 char		**ft_split(char const *s, char c);
 int			ft_strncmp(const char *s1, const char *s2, size_t n);
 char		*substr(char *s, int index, char c, char **big);
 char		*ft_strjoin(char *s1, char *s2);
 size_t		ft_strlen(const char *str);
-void		close_all(t_fd *fds);
-t_fd		*init_data(t_fd *fds, int ac);
+void		error(void);
+void		free_big(char **big);
+char		*get_access(char **paths, char *full_path);
 
 #endif
